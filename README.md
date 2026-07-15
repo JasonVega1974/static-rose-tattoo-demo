@@ -27,14 +27,32 @@ The form POSTs JSON to `https://formsubmit.co/ajax/info@kingdom-creatives.com` (
 3. Live at `https://jasonvega1974.github.io/static-rose-tattoo-demo/` within a couple of minutes. No build step — the file is the site.
 4. After deploy, submit the form once and click FormSubmit's activation link (see above).
 
+## Owner admin, buyer handoff & cloning
+
+The site now ships with the SiteLab owner-admin pattern (same architecture as domvegz, proven live):
+
+- **`content.json`** (repo root) — the live content override. `DEFAULT_CONTENT` inline in `index.html` (~line 952) is the fallback that ships with the page and renders immediately; `content.json` is fetched at runtime and merged over it (`Object.assign`). A 404/offline just leaves the defaults standing — the page never hard-fails. **Keep the two shapes in sync**: `brand`, `stats`, `gallery`, `flash`, `bio`, `chips`, `social`, `settings`. Both `renderContent()` and the admin panel depend on those exact keys.
+- **`admin/index.html`** — PIN-gated, 100% client-side admin. The owner pastes a fine-grained GitHub PAT once; it's AES-GCM encrypted with a PIN (PBKDF2, 250k iterations) and stored **only in that browser's localStorage** (key `srt_enc`) — never in the repo. Saves go straight to the GitHub Contents API. Tabs: Gallery, Flash, About, Credentials, Stats, Social, Contact, Booking. Gallery and Flash have image upload (files land in `assets/img/`). Live in ~1 minute after Save.
+- **`SETUP.md`** — the non-technical buyer handoff guide: what they own, one-time setup (Pages, custom domain + DNS, FormSubmit activation, token creation, first login), everyday editing per tab, and security notes. Ends with a "For the installer" section for Jason.
+- **`tools/clone.mjs`** — stamps out a customized copy for a new buyer. Bare Node 20, zero deps:
+  ```bash
+  node tools/clone.mjs --name "Boise Ink House" --slug boise-ink-house \
+    --owner buyerGithubUser --repo boise-ink-house-site \
+    --email owner@studio.com --phone "(208) 555-0123" \
+    --city "Meridian, ID" --artist "Jamie Fox" [--out DIR]
+  ```
+  Rewrites every demo-brand variant, contact details, the FormSubmit destination, and the admin's `/* SWAP:CONFIG */` block; strips the `<!-- SWAP:DISCLOSURE -->` block and the installer-only part of SETUP.md; **keeps the Systems by Vega credit**. `--help` for full usage. Refuses to overwrite a non-empty `--out`.
+
 ## Rebranding for a paying artist
+
+> Most of this is now handled by `/admin/` (content) and `tools/clone.mjs` (identity/contact). This section is the manual fallback.
 
 Everything an artist changes is localized. Search `index.html` for **"Rebrand note"** comments, then:
 
 1. **Identity:** studio/artist name (nav brand, hero `h1`, titles, footer), `<title>`, meta description, og tags, JSON-LD names, favicon colors if desired.
 2. **Photos:** the CSS art is designed to be swapped without layout changes —
    - Hero portrait: drop `<img src="assets/portrait.jpg" alt="…">` inside `.portrait`; the ink-wash mark treatment disappears automatically (`:not(:has(img))` pattern).
-   - Gallery: in each tile, replace `<span class="tile__art art a-…">` with `<img class="tile__art" src="assets/gallery/<slug>.jpg" alt="…">` and update `data-title` / `data-tag` (the lightbox reads those). With real images, also update `lbRender` in the script to show the tile's image on the stage instead of the `data-art` class.
+   - Gallery + flash: **use `/admin/` instead** — upload a photo on a Gallery/Flash card and it's stored in `content.json` as `image`. `renderGallery()` swaps the CSS art for an `<img>`, and `lbRender()` already shows the photo on the lightbox stage; leave `image` empty to keep the built-in drawing. No code edit needed.
    - Flash cards: same swap inside `.flash-card__art`; About photo: `<img>` inside `.about__photo`.
 3. **Contact:** phone `(208) 555-0177` (footer + desktop toast text in the script), `books@staticrosetattoo.com` (form alt link, socials, footer, error message), Instagram/DM links — currently routed to `https://systemsbyvega.com` because the demo handle is fictional; point them at the artist's real profile.
 4. **Lead inbox:** `LEAD.email` in the script → artist's inbox, then redo the one-time FormSubmit activation.

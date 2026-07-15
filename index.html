@@ -297,6 +297,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .tile:hover{transform:translateY(-5px);border-color:rgba(196,43,61,.45);box-shadow:0 22px 44px -22px rgba(0,0,0,.8)}
 .tile[hidden]{display:none}
 .tile__art{position:absolute;inset:0}
+img.tile__art{width:100%;height:100%;object-fit:cover}
 .tile__cap{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:36px 14px 12px;
   display:flex;flex-direction:column;gap:3px;
   background:linear-gradient(180deg,transparent,rgba(6,6,9,.88))}
@@ -366,7 +367,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .lb[hidden]{display:none}
 .lb__backdrop{position:absolute;inset:0;background:rgba(5,5,8,.9);backdrop-filter:blur(6px);cursor:zoom-out}
 .lb__panel{position:relative;z-index:2;width:min(520px,92vw);margin:0}
-.lb__stage{width:100%;aspect-ratio:4/5;border:1px solid var(--card-brd);box-shadow:var(--shadow);border-radius:2px}
+.lb__stage{width:100%;aspect-ratio:4/5;border:1px solid var(--card-brd);box-shadow:var(--shadow);border-radius:2px;overflow:hidden}
+.lb__stage img{width:100%;height:100%;object-fit:cover;display:block}
 .lb__cap{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding:16px 2px 0}
 .lb__cap b{font-family:'Cormorant Unicase',serif;font-weight:700;font-size:1.35rem;color:#f8f2e5}
 .lb__cap .tag{font-size:.62rem;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:var(--crimson-bright)}
@@ -394,7 +396,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   background:var(--ink-2);display:flex;flex-direction:column;
   transition:transform .25s ease,border-color .25s ease}
 .flash-card:hover{transform:translateY(-5px);border-color:rgba(201,168,106,.45)}
-.flash-card__art{aspect-ratio:1/1;position:relative}
+.flash-card__art{aspect-ratio:1/1;position:relative;overflow:hidden}
+.flash-card__art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .flash-card__price{position:absolute;top:10px;right:10px;z-index:2;
   font-family:'Cormorant Unicase',serif;font-weight:700;font-size:1.1rem;color:var(--gold);
   background:rgba(8,8,11,.78);border:1px solid rgba(201,168,106,.4);padding:.22rem .7rem;border-radius:2px}
@@ -608,18 +611,15 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <div class="wrap">
     <div class="hero__grid">
       <div class="hero__copy">
-        <div class="hero__tag"><span class="eyebrow">Private studio · Boise, Idaho</span></div>
+        <div class="hero__tag"><span class="eyebrow">Private studio · <span data-edit="city">Boise, Idaho</span></span></div>
         <h1 class="display"><span class="l1">Static Rose</span><span class="l2">Tattoo by Rae Costa</span></h1>
         <p class="hero__sub">Blackwork &amp; fine-line tattoos, by appointment only. One client at a time, one drawing at a time — no walk-ins, no rush.</p>
         <div class="hero__cta">
           <a class="btn btn--lg" href="#book">Request a booking</a>
           <a class="btn btn--ghost btn--lg" href="#work">See the work</a>
         </div>
-        <div class="hero__proof">
-          <div class="proof"><b>9 yrs</b><span>Tattooing</span></div>
-          <div class="proof"><b>1,200+</b><span>Pieces healed</span></div>
-          <div class="proof"><b>Private</b><span>One-chair studio</span></div>
-        </div>
+        <!-- rendered from CONTENT.stats -->
+        <div class="hero__proof" id="proofRow"></div>
       </div>
       <div class="hero__portrait">
         <!-- Rebrand note: drop <img src="assets/portrait.jpg" alt="…" /> inside .portrait
@@ -652,60 +652,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <button class="pill" data-filter="flash" aria-pressed="false">Flash</button>
     </div>
 
-    <!-- Rebrand note: each tile below is a pure-CSS ink study standing in for a
-         tattoo photo. For a real artist, replace the art span in a tile with
-         <img class="tile__art" src="assets/gallery/<slug>.jpg" alt="…"> and
-         update data-title / data-tag — the lightbox picks both up automatically. -->
-    <div class="grid" id="grid">
-      <button class="tile reveal" data-cat="blackwork" data-art="a-serpent" data-title="Serpent &amp; Dagger" data-tag="Blackwork">
-        <span class="tile__art art a-serpent" aria-hidden="true"></span>
-        <span class="tile__cap"><b>Serpent &amp; Dagger</b><span>Blackwork</span></span>
-      </button>
-      <button class="tile reveal" data-cat="blackwork" data-art="a-moth" data-title="Death Moth" data-tag="Blackwork">
-        <span class="tile__art art a-moth" aria-hidden="true"></span>
-        <span class="tile__cap"><b>Death Moth</b><span>Blackwork</span></span>
-      </button>
-      <button class="tile reveal" data-cat="blackwork" data-art="a-wolf" data-title="Wolf Skull" data-tag="Blackwork">
-        <span class="tile__art art a-wolf" aria-hidden="true"></span>
-        <span class="tile__cap"><b>Wolf Skull</b><span>Blackwork</span></span>
-      </button>
-      <button class="tile reveal" data-cat="fineline" data-art="a-rose" data-title="Single-Needle Rose" data-tag="Fine Line">
-        <span class="tile__art art a-rose" aria-hidden="true"></span>
-        <span class="tile__cap"><b>Single-Needle Rose</b><span>Fine Line</span></span>
-      </button>
-      <button class="tile reveal" data-cat="fineline" data-art="a-botanical" data-title="Sage Stem" data-tag="Fine Line">
-        <span class="tile__art art a-botanical" aria-hidden="true"></span>
-        <span class="tile__cap"><b>Sage Stem</b><span>Fine Line</span></span>
-      </button>
-      <button class="tile reveal" data-cat="fineline" data-art="a-script" data-title="Mother's Script" data-tag="Fine Line">
-        <span class="tile__art art a-script" aria-hidden="true"></span>
-        <span class="tile__cap"><b>Mother's Script</b><span>Fine Line</span></span>
-      </button>
-      <button class="tile reveal" data-cat="color" data-art="a-koi" data-title="Koi in Bloom" data-tag="Color">
-        <span class="tile__art art a-koi" aria-hidden="true"></span>
-        <span class="tile__cap"><b>Koi in Bloom</b><span>Color</span></span>
-      </button>
-      <button class="tile reveal" data-cat="color" data-art="a-swallow" data-title="Gilded Swallow" data-tag="Color">
-        <span class="tile__art art a-swallow" aria-hidden="true"></span>
-        <span class="tile__cap"><b>Gilded Swallow</b><span>Color</span></span>
-      </button>
-      <button class="tile reveal" data-cat="color" data-art="a-poppy" data-title="Poppy Field" data-tag="Color">
-        <span class="tile__art art a-poppy" aria-hidden="true"></span>
-        <span class="tile__cap"><b>Poppy Field</b><span>Color</span></span>
-      </button>
-      <button class="tile reveal" data-cat="flash" data-art="a-heart" data-title="Thorned Heart" data-tag="Flash">
-        <span class="tile__art art a-heart" aria-hidden="true"></span>
-        <span class="tile__cap"><b>Thorned Heart</b><span>Flash</span></span>
-      </button>
-      <button class="tile reveal" data-cat="flash" data-art="a-snake" data-title="Coiled Snake" data-tag="Flash">
-        <span class="tile__art art a-snake" aria-hidden="true"></span>
-        <span class="tile__cap"><b>Coiled Snake</b><span>Flash</span></span>
-      </button>
-      <button class="tile reveal" data-cat="flash" data-art="a-dagger" data-title="Dagger &amp; Rose" data-tag="Flash">
-        <span class="tile__art art a-dagger" aria-hidden="true"></span>
-        <span class="tile__cap"><b>Dagger &amp; Rose</b><span>Flash</span></span>
-      </button>
-    </div>
+    <!-- Rendered from CONTENT.gallery (edit at /admin/). Each piece is either a
+         pure-CSS ink study (art class) or an uploaded photo; the lightbox reads
+         data-title / data-tag / data-img off each tile automatically. -->
+    <div class="grid" id="grid"></div>
   </div>
 </section>
 
@@ -733,40 +683,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <h2 class="section-title">Ready-to-Wear Designs</h2>
       <p class="lead" style="margin:0 auto">Pre-drawn pieces at a set price, tattooed once and then retired. Claim one and it's yours alone — the design comes off the sheet forever.</p>
     </div>
-    <div class="flash__grid">
-      <div class="flash-card reveal" data-delay="1">
-        <div class="flash-card__art art a-heart" aria-hidden="true"><span class="flash-card__price">$180</span></div>
-        <div class="flash-card__body">
-          <b>Thorned Heart</b>
-          <p>Palm-sized sacred heart wrapped in thorns. Solid black with dotwork shading. Inner arm or calf.</p>
-          <a class="flash-card__claim" href="#book" data-flash="Thorned Heart — $180">Claim this flash</a>
-        </div>
-      </div>
-      <div class="flash-card reveal" data-delay="2">
-        <div class="flash-card__art art a-snake" aria-hidden="true"><span class="flash-card__price">$220</span></div>
-        <div class="flash-card__body">
-          <b>Coiled Snake</b>
-          <p>Whip-shaded serpent coiled around a crescent. Reads beautifully on the forearm or above the knee.</p>
-          <a class="flash-card__claim" href="#book" data-flash="Coiled Snake — $220">Claim this flash</a>
-        </div>
-      </div>
-      <div class="flash-card reveal" data-delay="3">
-        <div class="flash-card__art art a-dagger" aria-hidden="true"><span class="flash-card__price">$200</span></div>
-        <div class="flash-card__body">
-          <b>Dagger &amp; Rose</b>
-          <p>Classic pairing, drawn thin. A single-needle rose split by a stiletto dagger. Vertical placements only.</p>
-          <a class="flash-card__claim" href="#book" data-flash="Dagger &amp; Rose — $200">Claim this flash</a>
-        </div>
-      </div>
-      <div class="flash-card reveal" data-delay="3">
-        <div class="flash-card__art art a-moth" aria-hidden="true"><span class="flash-card__price">$160</span></div>
-        <div class="flash-card__body">
-          <b>Moth No. 3</b>
-          <p>Small symmetrical moth from the spring sheet. Two hours in the chair, heals crisp. Sternum or nape.</p>
-          <a class="flash-card__claim" href="#book" data-flash="Moth No. 3 — $160">Claim this flash</a>
-        </div>
-      </div>
-    </div>
+    <!-- Rendered from CONTENT.flash (edit at /admin/) -->
+    <div class="flash__grid" id="flashGrid"></div>
     <p class="flash__note reveal">Flash prices are <b>all-in</b> — deposit applies toward the total, no drawing fee, one round of size adjustment included.</p>
   </div>
 </section>
@@ -781,15 +699,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <div class="about__body reveal" data-delay="1">
         <span class="eyebrow">Meet the artist</span>
         <h2 class="section-title">Rae Costa</h2>
-        <!-- Rebrand note: swap this bio for the real artist's. If the div is
-             left empty, a placeholder prompt renders instead. -->
-        <div class="bio">Rae started tattooing in 2017 the way most stubborn people do — hand-poking her own ankle in a college apartment, then apprenticing for two years under a traditional shop in Garden City until the machine felt like a pencil. She went private in 2021: no walk-ins, no five chairs buzzing at once, just one client and one drawing at a time. Blackwork and single-needle fine line are home base; she takes color projects when the idea genuinely needs it. If your concept isn't a fit, she'll say so and point you to someone in the valley who's better for it.</div>
-        <div class="about__chips">
-          <span class="chip">Licensed · Idaho</span>
-          <span class="chip">Bloodborne pathogen certified</span>
-          <span class="chip">Single-use needles, always</span>
-          <span class="chip">LGBTQ+ welcoming</span>
-        </div>
+        <!-- Rendered from CONTENT.bio / CONTENT.chips (edit at /admin/). If the
+             bio is left empty, a placeholder prompt renders instead. -->
+        <div class="bio" id="bioText"></div>
+        <div class="about__chips" id="chipRow"></div>
       </div>
     </div>
   </div>
@@ -920,10 +833,20 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <div class="book__actions">
         <button class="btn btn--lg" type="submit" id="bookSubmit">Send the request</button>
         <!-- Demo note: the handle is fictional, so this routes to the studio inbox instead of a dead IG profile -->
-        <a class="book__alt" href="mailto:books@staticrosetattoo.com">or email books@staticrosetattoo.com</a>
+        <a class="book__alt" id="bookAlt" href="mailto:books@staticrosetattoo.com">or email books@staticrosetattoo.com</a>
       </div>
       <p class="book__msg" id="bookMsg" role="status" aria-live="polite"></p>
     </form>
+
+    <!-- books-closed card: shown instead of the form when settings.booksOpen is off -->
+    <div class="book-done" id="bookClosed" hidden>
+      <div class="book-done__ic" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h3>Books are closed.</h3>
+      <p id="closedMsg"></p>
+      <a class="btn btn--ghost" href="#work">See the work</a>
+    </div>
 
     <!-- success card -->
     <div class="book-done" id="bookDone" hidden>
@@ -941,18 +864,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 <section class="socials" aria-label="Social links">
   <div class="wrap reveal">
     <span class="eyebrow" style="justify-content:center">Elsewhere</span>
-    <div class="socials__row">
-      <!-- Demo note: @staticrosetattoo is fictional; the link routes to the studio behind
-           this concept build so it never 404s. Point it at the real IG on rebrand. -->
-      <a class="social" href="https://systemsbyvega.com" target="_blank" rel="noopener noreferrer">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r=".8" fill="currentColor" stroke="none"/></svg>
-        @staticrosetattoo
-      </a>
-      <a class="social" href="mailto:books@staticrosetattoo.com">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
-        books@staticrosetattoo.com
-      </a>
-    </div>
+    <!-- Rendered from CONTENT.social + CONTENT.brand.email (edit at /admin/).
+         Demo note: @staticrosetattoo is fictional; its link routes to the studio
+         behind this concept build so it never 404s. -->
+    <div class="socials__row" id="socialRow"></div>
   </div>
 </section>
 
@@ -967,10 +882,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <div><b>Static Rose Tattoo</b><span>Rae Costa · Boise, ID</span></div>
     </div>
     <div class="footer__meta">
-      Text <a href="tel:+12085550177">(208) 555-0177</a> · <a href="mailto:books@staticrosetattoo.com">books@staticrosetattoo.com</a><br />
-      Private studio, Boise — address shared once your booking is confirmed<br />
+      Text <a id="footPhone" href="tel:+12085550177">(208) 555-0177</a> · <a id="footEmail" href="mailto:books@staticrosetattoo.com">books@staticrosetattoo.com</a><br />
+      Private studio, <span data-edit="city-short">Boise</span> — address shared once your booking is confirmed<br />
       <span style="opacity:.6">© <span id="yr"></span> Static Rose Tattoo · 18+ only · Licensed &amp; insured</span><br />
-      <span style="opacity:.55;font-size:.78rem">Demonstration website for a fictional studio · Concept build by <a href="https://systemsbyvega.com" target="_blank" rel="noopener noreferrer">Systems by Vega</a></span>
+      <!-- SWAP:DISCLOSURE --><span style="opacity:.55;font-size:.78rem">Demonstration website for a fictional studio · </span><!-- /SWAP:DISCLOSURE --><span style="opacity:.55;font-size:.78rem">Concept build by <a href="https://systemsbyvega.com" target="_blank" rel="noopener noreferrer">Systems by Vega</a></span>
     </div>
   </div>
 </footer>
@@ -979,8 +894,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 <div class="mobile-bar">
   <a class="book-cta" href="#book"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Book</a>
   <!-- Demo note: fictional handle — routes to Systems by Vega so it never 404s.
-       Point at the real Instagram profile on rebrand. -->
-  <a class="dm-cta" href="https://systemsbyvega.com" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>DM</a>
+       The href follows the first CONTENT.social link. -->
+  <a class="dm-cta" id="dmLink" href="https://systemsbyvega.com" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>DM</a>
 </div>
 
 <script>
@@ -1029,13 +944,83 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   }
 
   /* =====================================================
+     CONTENT — everything the owner edits in one object.
+     DEFAULT_CONTENT ships inline (renders immediately);
+     content.json at the repo root — written by /admin/ —
+     overrides it at runtime. Keep both shapes in sync.
+     ===================================================== */
+  var DEFAULT_CONTENT = {
+    brand: {
+      phone: "(208) 555-0177",
+      email: "books@staticrosetattoo.com",
+      city: "Boise, Idaho",
+      leadEmail: "info@kingdom-creatives.com"
+    },
+    stats: [
+      { num: "9 yrs", label: "Tattooing" },
+      { num: "1,200+", label: "Pieces healed" },
+      { num: "Private", label: "One-chair studio" }
+    ],
+    gallery: [
+      { title: "Serpent & Dagger", tag: "Blackwork", cat: "blackwork", art: "a-serpent", image: "" },
+      { title: "Death Moth", tag: "Blackwork", cat: "blackwork", art: "a-moth", image: "" },
+      { title: "Wolf Skull", tag: "Blackwork", cat: "blackwork", art: "a-wolf", image: "" },
+      { title: "Single-Needle Rose", tag: "Fine Line", cat: "fineline", art: "a-rose", image: "" },
+      { title: "Sage Stem", tag: "Fine Line", cat: "fineline", art: "a-botanical", image: "" },
+      { title: "Mother's Script", tag: "Fine Line", cat: "fineline", art: "a-script", image: "" },
+      { title: "Koi in Bloom", tag: "Color", cat: "color", art: "a-koi", image: "" },
+      { title: "Gilded Swallow", tag: "Color", cat: "color", art: "a-swallow", image: "" },
+      { title: "Poppy Field", tag: "Color", cat: "color", art: "a-poppy", image: "" },
+      { title: "Thorned Heart", tag: "Flash", cat: "flash", art: "a-heart", image: "" },
+      { title: "Coiled Snake", tag: "Flash", cat: "flash", art: "a-snake", image: "" },
+      { title: "Dagger & Rose", tag: "Flash", cat: "flash", art: "a-dagger", image: "" }
+    ],
+    flash: [
+      { title: "Thorned Heart", price: "$180", desc: "Palm-sized sacred heart wrapped in thorns. Solid black with dotwork shading. Inner arm or calf.", art: "a-heart", image: "" },
+      { title: "Coiled Snake", price: "$220", desc: "Whip-shaded serpent coiled around a crescent. Reads beautifully on the forearm or above the knee.", art: "a-snake", image: "" },
+      { title: "Dagger & Rose", price: "$200", desc: "Classic pairing, drawn thin. A single-needle rose split by a stiletto dagger. Vertical placements only.", art: "a-dagger", image: "" },
+      { title: "Moth No. 3", price: "$160", desc: "Small symmetrical moth from the spring sheet. Two hours in the chair, heals crisp. Sternum or nape.", art: "a-moth", image: "" }
+    ],
+    bio: "Rae started tattooing in 2017 the way most stubborn people do — hand-poking her own ankle in a college apartment, then apprenticing for two years under a traditional shop in Garden City until the machine felt like a pencil. She went private in 2021: no walk-ins, no five chairs buzzing at once, just one client and one drawing at a time. Blackwork and single-needle fine line are home base; she takes color projects when the idea genuinely needs it. If your concept isn't a fit, she'll say so and point you to someone in the valley who's better for it.",
+    chips: [
+      { t: "Licensed · Idaho" },
+      { t: "Bloodborne pathogen certified" },
+      { t: "Single-use needles, always" },
+      { t: "LGBTQ+ welcoming" }
+    ],
+    social: [
+      { platform: "Instagram", label: "@staticrosetattoo", url: "https://systemsbyvega.com" }
+    ],
+    settings: {
+      booksOpen: true,
+      closedNote: "Books are closed while Rae works through the current list. The next opening is announced on Instagram first — follow along there, or check back soon."
+    }
+  };
+  var CONTENT = DEFAULT_CONTENT;
+
+  var esc = function(s){
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    });
+  };
+  var telHref = function(p){
+    var d = String(p || '').replace(/\D/g, '');
+    if(d.length === 10) d = '1' + d;
+    return 'tel:+' + d;
+  };
+
+  /* =====================================================
      SIGNATURE: filterable gallery + lightbox
+     (tiles render from CONTENT.gallery; the lightbox works
+     off whatever tiles are in the grid + the active filter)
      ===================================================== */
   var grid = document.getElementById('grid');
-  var tiles = Array.prototype.slice.call(grid.querySelectorAll('.tile'));
+  var tiles = [];
   var pills = document.querySelectorAll('.pill');
+  var currentFilter = 'all';
 
   var applyFilter = function(cat){
+    currentFilter = cat;
     tiles.forEach(function(t){
       t.hidden = (cat !== 'all' && t.getAttribute('data-cat') !== cat);
     });
@@ -1064,8 +1049,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
   var lbRender = function(){
     var t = lbSet[lbIndex];
-    // reuse the tile's placeholder-art class on the big stage
-    lbStage.className = 'lb__stage art ' + t.getAttribute('data-art');
+    var img = t.getAttribute('data-img');
+    if(img){
+      // real photo — show it on the stage
+      lbStage.className = 'lb__stage';
+      lbStage.innerHTML = '<img src="' + esc(img) + '" alt="' + esc(t.getAttribute('data-title')) + '">';
+    } else {
+      // reuse the tile's placeholder-art class on the big stage
+      lbStage.className = 'lb__stage art ' + t.getAttribute('data-art');
+      lbStage.innerHTML = '';
+    }
     lbTitle.textContent = t.getAttribute('data-title'); // attribute entities are already decoded
     lbTag.textContent = t.getAttribute('data-tag');
     lbCount.textContent = (lbIndex + 1) + ' / ' + lbSet.length;
@@ -1092,8 +1085,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     lbRender();
   };
 
-  tiles.forEach(function(t){
-    t.addEventListener('click', function(){ openLb(t); });
+  // delegated so re-rendered tiles keep working
+  grid.addEventListener('click', function(e){
+    var t = e.target.closest('.tile');
+    if(t) openLb(t);
   });
   lbClose.addEventListener('click', closeLb);
   lbBack.addEventListener('click', closeLb);
@@ -1134,15 +1129,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     styleSel.value = 'Flash';
     budgetSel.value = 'Flash price (as listed)';
   };
-  document.querySelectorAll('[data-flash]').forEach(function(a){
-    a.addEventListener('click', function(){
-      // decode any entities baked into the attribute (e.g. &amp;)
-      var tmp = document.createElement('textarea');
-      tmp.innerHTML = a.getAttribute('data-flash');
-      claimFlash(tmp.value);
-      // let the default #book anchor jump happen; also record it in the URL
-      try{ history.replaceState(null, '', '#book'); }catch(err){}
-    });
+  // delegated so re-rendered flash cards keep working
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('[data-flash]');
+    if(!a) return;
+    // decode any entities baked into the attribute (e.g. &amp;)
+    var tmp = document.createElement('textarea');
+    tmp.innerHTML = a.getAttribute('data-flash');
+    claimFlash(tmp.value);
+    // let the default #book anchor jump happen; also record it in the URL
+    try{ history.replaceState(null, '', '#book'); }catch(err){}
   });
   flashClear.addEventListener('click', function(){
     flashInput.value = '';
@@ -1150,6 +1146,126 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     if(styleSel.value === 'Flash') styleSel.value = 'Blackwork';
     if(budgetSel.value === 'Flash price (as listed)') budgetSel.value = '$300–$600';
   });
+
+  /* =====================================================
+     RENDER — paints every owner-editable region from the
+     merged CONTENT object. Runs once with the defaults,
+     again if content.json loads. Never hard-fails the page.
+     ===================================================== */
+  var SOCIAL_ICONS = {
+    'Instagram': '<rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r=".8" fill="currentColor" stroke="none"/>',
+    'TikTok': '<path d="M9 12a4 4 0 1 0 4 4V4c.4 2.5 2.1 4.1 4.6 4.4"/>',
+    'Facebook': '<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>',
+    'X': '<path d="M4 4l16 16M20 4L4 20"/>',
+    'YouTube': '<rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9.5l5 2.5-5 2.5z"/>',
+    'Website': '<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/>'
+  };
+  var socSvg = function(platform){
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + (SOCIAL_ICONS[platform] || SOCIAL_ICONS.Website) + '</svg>';
+  };
+
+  var renderStats = function(list){
+    document.getElementById('proofRow').innerHTML = (list || []).map(function(s){
+      return '<div class="proof"><b>' + esc(s.num) + '</b><span>' + esc(s.label) + '</span></div>';
+    }).join('');
+  };
+
+  var renderGallery = function(list){
+    grid.innerHTML = (list || []).map(function(g){
+      var art = g.image
+        ? '<img class="tile__art" src="' + esc(g.image) + '" alt="' + esc(g.title) + '" loading="lazy">'
+        : '<span class="tile__art art ' + esc(g.art || 'a-rose') + '" aria-hidden="true"></span>';
+      return '<button class="tile reveal in" data-cat="' + esc(g.cat || 'blackwork') + '"'
+        + (g.image ? ' data-img="' + esc(g.image) + '"' : ' data-art="' + esc(g.art || 'a-rose') + '"')
+        + ' data-title="' + esc(g.title) + '" data-tag="' + esc(g.tag || '') + '">'
+        + art
+        + '<span class="tile__cap"><b>' + esc(g.title) + '</b><span>' + esc(g.tag || '') + '</span></span>'
+        + '</button>';
+    }).join('');
+    tiles = Array.prototype.slice.call(grid.querySelectorAll('.tile'));
+    applyFilter(currentFilter);
+  };
+
+  var renderFlash = function(list){
+    document.getElementById('flashGrid').innerHTML = (list || []).map(function(f){
+      var claim = f.title + ' — ' + f.price;
+      var art = f.image
+        ? '<div class="flash-card__art" aria-hidden="true"><img src="' + esc(f.image) + '" alt="" loading="lazy"><span class="flash-card__price">' + esc(f.price) + '</span></div>'
+        : '<div class="flash-card__art art ' + esc(f.art || 'a-heart') + '" aria-hidden="true"><span class="flash-card__price">' + esc(f.price) + '</span></div>';
+      return '<div class="flash-card reveal in">' + art
+        + '<div class="flash-card__body"><b>' + esc(f.title) + '</b><p>' + esc(f.desc || '') + '</p>'
+        + '<a class="flash-card__claim" href="#book" data-flash="' + esc(claim) + '">Claim this flash</a></div></div>';
+    }).join('');
+  };
+
+  var renderAbout = function(c){
+    document.getElementById('bioText').textContent = c.bio || '';
+    document.getElementById('chipRow').innerHTML = (c.chips || []).map(function(ch){
+      return '<span class="chip">' + esc(ch.t) + '</span>';
+    }).join('');
+  };
+
+  var renderSocial = function(list, brand){
+    var pillsHtml = (list || []).map(function(s){
+      return '<a class="social" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">'
+        + socSvg(s.platform) + esc(s.label || s.platform) + '</a>';
+    });
+    pillsHtml.push('<a class="social" href="mailto:' + esc(brand.email) + '">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>'
+      + esc(brand.email) + '</a>');
+    document.getElementById('socialRow').innerHTML = pillsHtml.join('');
+    var dm = document.getElementById('dmLink');
+    if(dm && list && list.length && list[0].url) dm.href = list[0].url;
+  };
+
+  var renderBrand = function(b){
+    var short = String(b.city || '').split(',')[0].trim();
+    document.querySelectorAll('[data-edit="city"]').forEach(function(el){ el.textContent = b.city; });
+    document.querySelectorAll('[data-edit="city-short"]').forEach(function(el){ el.textContent = short; });
+    var fp = document.getElementById('footPhone');
+    fp.href = telHref(b.phone); fp.textContent = b.phone;
+    var fe = document.getElementById('footEmail');
+    fe.href = 'mailto:' + b.email; fe.textContent = b.email;
+    var alt = document.getElementById('bookAlt');
+    alt.href = 'mailto:' + b.email; alt.textContent = 'or email ' + b.email;
+  };
+
+  var renderBooking = function(s){
+    var open = !s || s.booksOpen !== false;
+    var formEl = document.getElementById('bookForm');
+    var closed = document.getElementById('bookClosed');
+    var done = document.getElementById('bookDone');
+    if(open){
+      closed.hidden = true;
+      if(done.hidden) formEl.hidden = false;
+    } else {
+      formEl.hidden = true;
+      done.hidden = true;
+      document.getElementById('closedMsg').textContent = (s && s.closedNote) || 'Books are closed right now — check back soon.';
+      closed.hidden = false;
+    }
+  };
+
+  var renderContent = function(c){
+    renderBrand(c.brand || {});
+    renderStats(c.stats);
+    renderGallery(c.gallery);
+    renderFlash(c.flash);
+    renderAbout(c);
+    renderSocial(c.social, c.brand || {});
+    renderBooking(c.settings);
+  };
+  renderContent(CONTENT);
+
+  // live override: content.json is what /admin/ edits. 404/offline = defaults stand.
+  fetch('content.json', {cache: 'no-store'})
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if(d){ CONTENT = Object.assign({}, DEFAULT_CONTENT, d); renderContent(CONTENT); }
+    })
+    .catch(function(){});
+
   // deep-link support: ?flash=Thorned%20Heart pre-claims on load
   try{
     var param = new URLSearchParams(window.location.search).get('flash');
@@ -1165,12 +1281,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
      activation link to LEAD.email; click it once and every request after
      that lands in the inbox. Swap the email below for the real one.
      ===================================================== */
+  // Delivery inbox = CONTENT.brand.leadEmail (editable at /admin/ → Contact).
+  // FormSubmit sends a ONE-TIME activation link to that address on the first
+  // real submission — click it once and every request after that is delivered.
   var LEAD = {
     provider: 'formsubmit',
-    // Demo delivery inbox. FormSubmit sends a ONE-TIME activation link to this
-    // address on the first real submission — click it once and every request
-    // after that is delivered here. On rebrand, swap in the artist's inbox.
-    email: 'info@kingdom-creatives.com'
+    get email(){ return (CONTENT.brand && CONTENT.brand.leadEmail) || DEFAULT_CONTENT.brand.leadEmail; }
   };
 
   var form = document.getElementById('bookForm');
@@ -1249,7 +1365,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       done.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block:'center'});
     }).catch(function(){
       submitBtn.disabled = false;
-      say('That didn’t go through. Email books@staticrosetattoo.com instead.', 'err');
+      say('That didn’t go through. Email ' + ((CONTENT.brand && CONTENT.brand.email) || 'the studio') + ' instead.', 'err');
     });
   });
 
@@ -1273,7 +1389,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
           + 'opacity:0;transition:opacity .25s ease;';
         document.body.appendChild(t);
       }
-      t.innerHTML = 'Text the studio at <strong style="color:#e0475a;letter-spacing:.02em">(208) 555-0177</strong> from your phone.';
+      t.innerHTML = 'Text the studio at <strong style="color:#e0475a;letter-spacing:.02em">' + esc((CONTENT.brand && CONTENT.brand.phone) || '') + '</strong> from your phone.';
       requestAnimationFrame(function(){ t.style.opacity = '1'; });
       clearTimeout(window.__telToastTimer);
       window.__telToastTimer = setTimeout(function(){ t.style.opacity = '0'; }, 4500);
