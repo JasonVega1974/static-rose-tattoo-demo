@@ -12,6 +12,10 @@
  * Copies index.html, admin/index.html, content.json and SETUP.md into --out,
  * rewriting the demo brand/contact strings and the admin's OWNER/REPO config.
  * Strips the fictional-business disclosure. KEEPS the Systems by Vega credit.
+ *
+ * Does NOT copy INSTALL.md (the installer runbook) — buyer repos are public.
+ * Installer procedure lives in INSTALL.md; see its "Content sweep" section, which
+ * lists the demo content this tool deliberately leaves behind in content.json.
  */
 
 import fs from "node:fs";
@@ -48,11 +52,15 @@ const REPLACEMENTS = (v) => [
 
   // --- artist name (10x "Rae Costa", plus bare "Rae" in prose) ---
   ["Rae Costa", v.artist],
+  ["#rae", "#" + v.artistFirst.toLowerCase()], // JSON-LD Person @id anchor (lowercase, missed by \bRae\b)
   [/\bRae\b/g, v.artistFirst],
 
   // --- contact details ---
   ["(208) 555-0177", v.phone],
-  ["tel:+12085550177", "tel:+" + v.phoneDigits],
+  // NB: match the bare E.164 number, NOT "tel:+…" — the JSON-LD "telephone" field
+  // has no tel: prefix, and a prefixed rule left the fictional demo number in the
+  // buyer's structured data. This rule covers the tel: hrefs too (substring).
+  ["+12085550177", "+" + v.phoneDigits],
   ["Boise, Idaho", v.city],
   ["Boise, ID", v.city],
   [/\bBoise\b/g, v.cityShort],
@@ -62,12 +70,22 @@ const REPLACEMENTS = (v) => [
     `/* SWAP:CONFIG */\n  var OWNER="${v.owner}", REPO="${v.repo}", BRANCH="main";\n  /* /SWAP:CONFIG */`],
 ];
 
-/* Strip the demo-only disclosure, the "Demo note:" comments, and the
-   installer-only section of SETUP.md (the buyer copy has no tools/ dir). */
+/* Strip the demo-only disclosure and the "Demo note:" comments. */
 const DISCLOSURE_RE = /<!--\s*SWAP:DISCLOSURE\s*-->[\s\S]*?<!--\s*\/SWAP:DISCLOSURE\s*-->/g;
 const DEMO_NOTE_RE = /<!--[^>]*?Demo note:[\s\S]*?-->\s*/g;
-const INSTALLER_RE = /<!--\s*SWAP:INSTALLER\s*-->[\s\S]*?<!--\s*\/SWAP:INSTALLER\s*-->\s*/g;
 
+/* Files copied into the buyer's output.
+ *
+ * INSTALL.md is deliberately ABSENT and must stay that way: it's the installer
+ * runbook (tokens, DNS, ownership model, internal notes) and buyer repos are
+ * PUBLIC on the GitHub Pages free tier. SETUP.md is the buyer-facing owner's
+ * guide and is the only doc that ships.
+ *
+ * (SETUP.md used to carry a "For the installer" section fenced in HTML comment
+ * markers that this tool stripped on copy. That content now lives in INSTALL.md,
+ * which simply isn't copied — so the markers and the stripping logic are both
+ * gone. Don't reintroduce installer prose into SETUP.md.)
+ */
 const FILES = ["index.html", "admin/index.html", "content.json", "SETUP.md"];
 
 const USAGE = `
@@ -188,10 +206,6 @@ function main() {
     if (rel.endsWith(".html")) {
       text = text.replace(DISCLOSURE_RE, "").replace(DEMO_NOTE_RE, "");
     }
-    if (rel === "SETUP.md") {
-      // the buyer copy has no tools/ dir — drop the installer-only section
-      text = text.replace(INSTALLER_RE, "");
-    }
     text = applyAll(text, rules);
 
     const dest = path.join(out, rel);
@@ -207,9 +221,10 @@ The website for ${name} — one self-contained \`index.html\`, hosted free on Gi
 No frameworks, no build step, no backend.
 
 Edit your own content at \`/admin/\` — gallery, flash, bio, prices, contact details.
+Hit Save and the site is live in about a minute.
 
-**Start here: [SETUP.md](SETUP.md)** — getting live, activating the booking form,
-creating your admin token, and what each admin tab does.
+**Start here: [SETUP.md](SETUP.md)** — your owner's guide: what each admin tab does,
+photo tips, opening and closing your books, and what to do if something stops working.
 
 Built by [Systems by Vega](https://systemsbyvega.com).
 `);
@@ -218,22 +233,31 @@ Built by [Systems by Vega](https://systemsbyvega.com).
   console.log(`
 Done → ${out}
 
-Next steps:
+Next steps — follow INSTALL.md (installer runbook, not copied into the output):
+
   1. WEB-SEARCH "${name}" FIRST — check the name isn't already taken by a real
      business in the area (and that the domain/handles are free). Do this before
      anything else; renaming later is expensive.
-  2. Review the output. Skim index.html for any leftover demo wording.
-  3. Publish:
+  2. CONTENT SWEEP — DO NOT SKIP. This tool swapped brand/contact/URLs only; the
+     DEMO CONTENT is still in place. The bio, the 3 stats, all 12 gallery pieces,
+     the 4 flash designs + their prices, and the credential chips are still the
+     demo's. Replace them (via /admin/ or content.json + DEFAULT_CONTENT in
+     index.html) BEFORE this goes public. See "Content sweep" in INSTALL.md.
+  3. Review the output. Skim index.html for leftover demo wording, and for the
+     $100 deposit, the FAQ policies and the JSON-LD priceRange.
+  4. On GitHub: create the repo ${v.owner}/${v.repo} (public) first, then publish:
        cd "${out}"
        git init && git add -A && git commit -m "Initial site"
        git branch -M main
        git remote add origin https://github.com/${v.owner}/${v.repo}.git
        git push -u origin main
-  4. On GitHub: create the repo ${v.owner}/${v.repo} (public) before pushing.
      Then Settings -> Pages -> Deploy from a branch -> main -> / (root).
   5. Live at ${v.siteUrl}
-  6. Hand the owner SETUP.md and walk them through the token + PIN (section 2f-2g),
-     and the one-time FormSubmit activation (section 2e).
+  6. Activate FormSubmit (submit the form once, click the emailed link) and confirm
+     a test lead arrives. Leads are DEAD until this is done.
+  7. Create the token, save it to the buyer's password manager, then first login on
+     the BUYER'S PHONE — they type the PIN, you don't learn it. INSTALL.md ss7-9.
+  8. Hand the owner SETUP.md (their guide — no GitHub/token/DNS in it).
 `);
 }
 

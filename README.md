@@ -33,7 +33,9 @@ The site now ships with the SiteLab owner-admin pattern (same architecture as do
 
 - **`content.json`** (repo root) — the live content override. `DEFAULT_CONTENT` inline in `index.html` (~line 952) is the fallback that ships with the page and renders immediately; `content.json` is fetched at runtime and merged over it (`Object.assign`). A 404/offline just leaves the defaults standing — the page never hard-fails. **Keep the two shapes in sync**: `brand`, `stats`, `gallery`, `flash`, `bio`, `chips`, `social`, `settings`. Both `renderContent()` and the admin panel depend on those exact keys.
 - **`admin/index.html`** — PIN-gated, 100% client-side admin. The owner pastes a fine-grained GitHub PAT once; it's AES-GCM encrypted with a PIN (PBKDF2, 250k iterations) and stored **only in that browser's localStorage** (key `srt_enc`) — never in the repo. Saves go straight to the GitHub Contents API. Tabs: Gallery, Flash, About, Credentials, Stats, Social, Contact, Booking. Gallery and Flash have image upload (files land in `assets/img/`). Live in ~1 minute after Save.
-- **`SETUP.md`** — the non-technical buyer handoff guide: what they own, one-time setup (Pages, custom domain + DNS, FormSubmit activation, token creation, first login), everyday editing per tab, and security notes. Ends with a "For the installer" section for Jason.
+- **Two docs, two audiences — don't mix them up:**
+  - **[`INSTALL.md`](INSTALL.md)** — the **installer runbook (Jason-facing, NOT shipped)**. Pre-flight collision search, ownership model (buyer-owns by default vs. managed), the clone command, the **content sweep** (the demo bio/stats/gallery/flash/prices that must be replaced before a client site goes public), repo + Pages + DNS, FormSubmit activation, token creation with the minimal scope, password-manager step, phone-first login, storage eviction, annual token expiry, handoff checklist, troubleshooting. `tools/clone.mjs` deliberately does **not** copy it — buyer repos are public.
+  - **[`SETUP.md`](SETUP.md)** — the **buyer-facing owner's guide (shipped by the clone tool)**. Starts at "open `/admin/`, enter your PIN". What they own, everyday editing, what each tab does, photo + books-open tips, phone use, what to do when something stops working, security notes. **No GitHub account, token, git or DNS content** — that's all the installer's job and must not leak back in.
 - **`tools/clone.mjs`** — stamps out a customized copy for a new buyer. Bare Node 20, zero deps:
   ```bash
   node tools/clone.mjs --name "Boise Ink House" --slug boise-ink-house \
@@ -41,7 +43,9 @@ The site now ships with the SiteLab owner-admin pattern (same architecture as do
     --email owner@studio.com --phone "(208) 555-0123" \
     --city "Meridian, ID" --artist "Jamie Fox" [--out DIR]
   ```
-  Rewrites every demo-brand variant, contact details, the FormSubmit destination, and the admin's `/* SWAP:CONFIG */` block; strips the `<!-- SWAP:DISCLOSURE -->` block and the installer-only part of SETUP.md; **keeps the Systems by Vega credit**. `--help` for full usage. Refuses to overwrite a non-empty `--out`.
+  Copies `index.html`, `admin/index.html`, `content.json` and `SETUP.md` (**never `INSTALL.md`**) plus a fresh buyer README. Rewrites every demo-brand variant, contact details, the FormSubmit destination, and the admin's `/* SWAP:CONFIG */` block; strips the `<!-- SWAP:DISCLOSURE -->` block; **keeps the Systems by Vega credit**. `--help` for full usage. Refuses to overwrite a non-empty `--out`.
+
+  **It swaps identity, not content** — the demo bio, stats, gallery and flash prices survive the clone by design. See the content sweep in `INSTALL.md`.
 
 ## Rebranding for a paying artist
 
