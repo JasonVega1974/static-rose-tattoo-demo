@@ -88,6 +88,18 @@ const DEMO_NOTE_RE = /<!--[^>]*?Demo note:[\s\S]*?-->\s*/g;
  */
 const FILES = ["index.html", "admin/index.html", "content.json", "SETUP.md"];
 
+/* info@kingdom-creatives.com does double duty:
+     - in index.html / content.json it's the demo's FormSubmit lead destination -> MUST swap
+     - in SETUP.md prose it's Systems by Vega's support contact ("who to call") -> MUST survive
+   Swapping it in the owner's guide tells the buyer to email themselves for help.
+   Asserted before exit below. */
+const SUPPORT_EMAIL = "info@kingdom-creatives.com";
+// Files where the lead-email rule must NOT fire (the address means "support" here).
+const SUPPORT_PROSE = ["SETUP.md", "README.md"];
+// Files that must actually still carry the address afterwards. The generated
+// README credits Systems by Vega by URL only, so it is deliberately not listed.
+const SUPPORT_REQUIRED = ["SETUP.md"];
+
 const USAGE = `
 clone.mjs — stamp out a customized copy of this site for a buyer.
 
@@ -127,12 +139,14 @@ function fail(msg) {
  * just written, yielding "Meridian Ink House". Sentinels make the rule table
  * order-independent with respect to its own output.
  */
-function applyAll(text, rules) {
+function applyAll(text, rules, relPath) {
   // A sentinel that cannot occur in HTML/JSON/Markdown source, so it can
   // never collide with real content and adds no characters of its own.
   const NUL = String.fromCharCode(0);
   const vals = [];
   rules.forEach(([from, to], i) => {
+    // Keep Vega's support address intact in buyer-facing prose. See SUPPORT_EMAIL.
+    if (from === SUPPORT_EMAIL && SUPPORT_PROSE.includes(relPath)) return;
     const mark = NUL + i + NUL;
     vals[i] = to;
     text = typeof from === "string" ? text.split(from).join(mark) : text.replace(from, mark);
@@ -206,7 +220,7 @@ function main() {
     if (rel.endsWith(".html")) {
       text = text.replace(DISCLOSURE_RE, "").replace(DEMO_NOTE_RE, "");
     }
-    text = applyAll(text, rules);
+    text = applyAll(text, rules, rel);
 
     const dest = path.join(out, rel);
     fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -229,6 +243,22 @@ photo tips, opening and closing your books, and what to do if something stops wo
 Built by [Systems by Vega](https://systemsbyvega.com).
 `);
   console.log("  wrote README.md");
+
+  // Guard: the installer runbook must never land in a buyer's public repo.
+  for (const f of ["INSTALL.md"]) {
+    if (fs.existsSync(path.join(out, f))) {
+      fail(`${f} must not be copied to a buyer repo (buyer repos are public). Found it at ${path.join(out, f)}`);
+    }
+  }
+
+  // Guard: the owner's guide must still tell the buyer how to reach Systems by Vega.
+  // If the lead-email rule ever eats it, the shipped guide says "email yourself".
+  for (const f of SUPPORT_REQUIRED) {
+    const p = path.join(out, f);
+    if (fs.existsSync(p) && !fs.readFileSync(p, "utf8").includes(SUPPORT_EMAIL)) {
+      fail(`${f} lost the Systems by Vega support address (${SUPPORT_EMAIL}) — the lead-email rule rewrote it.`);
+    }
+  }
 
   console.log(`
 Done → ${out}
