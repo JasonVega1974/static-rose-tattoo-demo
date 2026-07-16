@@ -74,6 +74,112 @@ const REPLACEMENTS = (v) => [
 const DISCLOSURE_RE = /<!--\s*SWAP:DISCLOSURE\s*-->[\s\S]*?<!--\s*\/SWAP:DISCLOSURE\s*-->/g;
 const DEMO_NOTE_RE = /<!--[^>]*?Demo note:[\s\S]*?-->\s*/g;
 
+/* ================================================================== *
+ * FABRICATED CREDENTIALS — never ship one to a buyer.
+ *
+ * The demo invents professional credentials for a fictional artist. A stale
+ * demo price is a cosmetic defect; a fabricated licence on a real studio's
+ * live site is a misrepresentation to the public and a regulatory problem for
+ * the buyer. So the tool blanks them here rather than trusting the installer
+ * to catch them in INSTALL.md's sweep (that sweep is now the backstop).
+ *
+ * Scope = claims of licensure, certification, registration, insurance,
+ * bonding, accreditation, a numbered permit, or documented trade training.
+ * Ordinary puffery ("9 yrs", "1,200+ pieces healed") is NOT in scope and
+ * stays — it reads as marketing, not as a verifiable credential.
+ *
+ * DELIBERATELY KEPT (not credentials — no licence, cert or registry behind them):
+ *   - chip "Single-use needles, always" — a hygiene practice statement, and the
+ *     universal standard of care for any studio legally able to operate. Nothing
+ *     is being claimed that a working tattooer doesn't do.
+ *   - chip "LGBTQ+ welcoming" — a values statement about studio culture, not a
+ *     verifiable qualification.
+ *   Both are still listed in INSTALL.md's sweep so the installer confirms the
+ *   buyer actually stands behind them. Keeping them also means the chip row
+ *   always has content, so the About section never renders a bare rail.
+ *
+ * The demo site keeps all of this copy. Only the clone OUTPUT is blanked.
+ * ================================================================== */
+
+/* The bio is byte-identical in content.json and in index.html's DEFAULT_CONTENT,
+ * so one exact-string rule blanks both.
+ *
+ * Blanked WHOLE, not surgically. It claims "apprenticing for two years under a
+ * traditional shop in Garden City" — in this trade a documented apprenticeship
+ * is the qualification pathway to licensure, so it reads as a credential, not as
+ * colour. It can't be excised cleanly (the clause carries the sentence), and what
+ * would remain is still a fabricated personal history the buyer must replace
+ * anyway. Empty is honest and renders as a prompt — see BIO_PLACEHOLDER. */
+const DEMO_BIO = "Rae started tattooing in 2017 the way most stubborn people do — hand-poking her own ankle in a college apartment, then apprenticing for two years under a traditional shop in Garden City until the machine felt like a pencil. She went private in 2021: no walk-ins, no five chairs buzzing at once, just one client and one drawing at a time. Blackwork and single-needle fine line are home base; she takes color projects when the idea genuinely needs it. If your concept isn't a fit, she'll say so and point you to someone in the valley who's better for it.";
+
+/* chips[] entries that are credential claims. DROPPED as whole array entries,
+ * not blanked in place: renderAbout maps every chip to `<span class="chip">`
+ * unconditionally, and .chip carries a border + padding + border-radius, so a
+ * chip with t:"" paints a visible empty pill. Dropping the entry is the only
+ * way the row renders clean. A buyer who IS licensed re-adds it in /admin/. */
+const CREDENTIAL_CHIPS = ["Licensed · Idaho", "Bloodborne pathogen certified"];
+
+/* The demo's .bio:empty::before prompt is what a cloned site now shows until the
+ * buyer writes a bio, so it can't stay demo-specific ("the hand-poke years"). */
+const BIO_PLACEHOLDER =
+  "Your bio goes here — how you started, why the studio works the way it does, and what you look for in a project. Two or three honest sentences beat a paragraph of hype. Replace this placeholder when it's written.";
+
+/* Applied before REPLACEMENTS, so the brand/name rules never see these strings. */
+const CREDENTIAL_RULES = [
+  // --- bio: content.json + index.html DEFAULT_CONTENT (identical string) ---
+  [DEMO_BIO, ""],
+  // --- bio empty-state prompt (index.html CSS) ---
+  ["Rae's bio goes here — how she started, the hand-poke years, why the studio is private, what she looks for in a project. Two or three honest sentences beat a paragraph of hype. Replace this placeholder when it's written.",
+    BIO_PLACEHOLDER],
+
+  // --- chips[] in index.html's DEFAULT_CONTENT (content.json is handled by
+  //     JSON round-trip in stripCredentials — see there) ---
+  [/^[ \t]*\{ t: "Licensed · Idaho" \},\r?\n/m, ""],
+  [/^[ \t]*\{ t: "Bloodborne pathogen certified" \},\r?\n/m, ""],
+
+  // --- static markup: footer copyright line. Takes the separator with it so the
+  //     line doesn't end in a dangling " · ". "18+ only" is a policy, and stays. ---
+  [" · Licensed &amp; insured", ""],
+
+  // --- admin/index.html: the Credentials field's example placeholder is an
+  //     Idaho licence. It never publishes, but it prompts a buyer (who may not
+  //     even be in Idaho) to assert one. Reword the hint to warn instead. ---
+  ['sub:"The small badges under your bio — licensing, certifications, studio policy.",',
+    'sub:"The small badges under your bio. Add only credentials you actually hold — these publish as public claims.",'],
+  ['{k:"t",label:"Text",full:true,ph:"Licensed · Idaho"}',
+    '{k:"t",label:"Text",full:true,ph:"Add your own"}'],
+];
+
+/* Output tripwire. The rules above are exact-match and therefore brittle: retype
+ * a chip, reflow the bio, and a rule silently stops firing. This scans what was
+ * actually written and hard-fails the clone, so drift can't ship quietly. */
+const CREDENTIAL_TRIPWIRES = [
+  /licen[cs]/i, /certif/i, /bloodborne/i, /pathogen/i,
+  /apprentic/i, /\binsured\b/i, /\bbonded\b/i, /accredit/i,
+];
+
+/**
+ * Remove fabricated credentials from one file's text.
+ *
+ * content.json goes through a JSON round-trip rather than a regex: it is
+ * machine-written (by /admin/, via the GitHub API) and its formatting is not
+ * ours to assume. Matching on the parsed value is exact and survives reflow.
+ */
+function stripCredentials(text, rel) {
+  if (rel === "content.json") {
+    const data = JSON.parse(text);
+    if (Array.isArray(data.chips)) {
+      data.chips = data.chips.filter((c) => !CREDENTIAL_CHIPS.includes(String(c && c.t).trim()));
+    }
+    if (data.bio === DEMO_BIO) data.bio = "";
+    text = JSON.stringify(data, null, 2) + "\n";
+  }
+  for (const [from, to] of CREDENTIAL_RULES) {
+    text = typeof from === "string" ? text.split(from).join(to) : text.replace(from, to);
+  }
+  return text;
+}
+
 /* Files copied into the buyer's output.
  *
  * INSTALL.md is deliberately ABSENT and must stay that way: it's the installer
@@ -220,6 +326,9 @@ function main() {
     if (rel.endsWith(".html")) {
       text = text.replace(DISCLOSURE_RE, "").replace(DEMO_NOTE_RE, "");
     }
+    // Before applyAll: these rules match the demo's exact strings, and applyAll
+    // would rewrite "Rae"/"Boise" inside them first and stop them matching.
+    text = stripCredentials(text, rel);
     text = applyAll(text, rules, rel);
 
     const dest = path.join(out, rel);
@@ -251,6 +360,26 @@ Built by [Systems by Vega](https://systemsbyvega.com).
     }
   }
 
+  // Guard: no fabricated credential may reach the buyer's site. This is the
+  // control the whole CREDENTIAL_* block exists to serve — if a rule stopped
+  // matching, fail loudly here rather than publish a false licence claim.
+  for (const rel of FILES) {
+    const p = path.join(out, rel);
+    if (!fs.existsSync(p)) continue;
+    const body = fs.readFileSync(p, "utf8");
+    for (const re of CREDENTIAL_TRIPWIRES) {
+      const hit = body.match(re);
+      if (!hit) continue;
+      const line = body.slice(0, hit.index).split("\n").length;
+      fail(
+        `fabricated credential survived the clone: ${rel}:${line} matches ${re}\n` +
+        `  -> ${body.split("\n")[line - 1].trim().slice(0, 160)}\n` +
+        `A credential rule in tools/clone.mjs stopped matching (demo copy edited?).\n` +
+        `Fix the rule — do not ship this output.`
+      );
+    }
+  }
+
   // Guard: the owner's guide must still tell the buyer how to reach Systems by Vega.
   // If the lead-email rule ever eats it, the shipped guide says "email yourself".
   for (const f of SUPPORT_REQUIRED) {
@@ -268,11 +397,20 @@ Next steps — follow INSTALL.md (installer runbook, not copied into the output)
   1. WEB-SEARCH "${name}" FIRST — check the name isn't already taken by a real
      business in the area (and that the domain/handles are free). Do this before
      anything else; renaming later is expensive.
-  2. CONTENT SWEEP — DO NOT SKIP. This tool swapped brand/contact/URLs only; the
-     DEMO CONTENT is still in place. The bio, the 3 stats, all 12 gallery pieces,
-     the 4 flash designs + their prices, and the credential chips are still the
-     demo's. Replace them (via /admin/ or content.json + DEFAULT_CONTENT in
-     index.html) BEFORE this goes public. See "Content sweep" in INSTALL.md.
+  2. CONTENT SWEEP — DO NOT SKIP. This tool swapped brand/contact/URLs and
+     BLANKED the fabricated credentials (see below); everything else is still
+     DEMO CONTENT. The 3 stats, all 12 gallery pieces, and the 4 flash designs +
+     their prices are still the demo's. Replace them (via /admin/ or
+     content.json + DEFAULT_CONTENT in index.html) BEFORE this goes public.
+     See "Content sweep" in INSTALL.md.
+
+     BLANKED FOR YOU (do not "restore" them — re-enter only what is TRUE):
+       - bio               -> empty; the About section shows a write-me prompt
+       - "Licensed · Idaho", "Bloodborne pathogen certified" chips -> removed
+       - footer "Licensed & insured" -> removed
+     The 2 surviving chips ("Single-use needles, always", "LGBTQ+ welcoming")
+     are practice/values statements, not credentials — confirm the buyer stands
+     behind both, and delete either one they don't.
   3. Review the output. Skim index.html for leftover demo wording, and for the
      $100 deposit, the FAQ policies and the JSON-LD priceRange.
   4. On GitHub: create the repo ${v.owner}/${v.repo} (public) first, then publish:

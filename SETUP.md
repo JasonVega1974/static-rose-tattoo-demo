@@ -47,7 +47,7 @@ change a flash price and close your books in one visit, then Save once.
 | **Gallery** ⭐ | **Your portfolio — the heart of the site.** Add a piece, give it a title and caption, pick which filter it shows under (Blackwork / Fine Line / Color / Flash), and **upload a photo**. The order here is the order on the site — first is top-left. This feeds the gallery and the click-to-enlarge lightbox. |
 | **Flash** | Available flash designs with prices and descriptions. Each one gets a "Claim this flash" button that pre-fills your booking form with that design. Photos optional. |
 | **About** | Your artist bio — the paragraph in the About section. |
-| **Credentials** | The small badges under your bio (licensing, certifications, studio policy). |
+| **Credentials** | The small badges under your bio. These ship **empty on purpose** — add only credentials you actually hold, exactly as they appear on the real document. They publish as public claims about your studio. |
 | **Stats** | The three proof numbers near the top (years tattooing, pieces healed, etc.). |
 | **Social** | Your social links. Pick the platform, the icon is automatic. The **first link** is what the DM button on mobile opens. |
 | **Contact** | Your phone, public email, and city — updates the footer, social row and every link on the site at once. Also **where booking requests get emailed**. |
